@@ -1,4 +1,5 @@
 import org.assertj.core.api.WithAssertions;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -10,27 +11,35 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import java.util.Scanner;
+import javax.swing.filechooser.*;
 
 
 public class Main {
-    private static String unsecuresalt = "12345678";
+    private static final String unsecuresalt = "12345678";
     private static String cipherText = "";
     private static String plainText = "";
     private static SecretKey key;
     private static String hashed = "";
     private static IvParameterSpec spec;
     private static final String algorithm = "AES/CBC/PKCS5Padding";
+    private static ArrayList <String> cipherBoys = new ArrayList<String>();
+    private static final File inputFile = Paths.get("src/tutorials.md").toFile();
+    private static final File encryptedFile = new File("classpath:brugger.encrypted");
+    private static final File decryptedFile = new File("document.decrypted");
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+
+    public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, IOException {
         // write your code here
         while (true) {
-            System.out.println("Would you like to create a password or would you like to encrypt/decrypt a program.\nEnter 1 to create a password\nEnter 2 to encrypt\nEnter 3 to decrypt");
+            System.out.println("Would you like to create a password or would you like to encrypt/decrypt a program.\nEnter 1 to create a password\nEnter 2 to encrypt text\nEnter 3 to decrypt text\nEnter 4 to encrypt a file\nEnter 5 to decrypt a file.");
             Scanner in = new Scanner(System.in);
             int choice = in.nextInt();
             if (choice == 1) {
@@ -54,7 +63,9 @@ public class Main {
                         System.out.println("Enter the text you would like to be ciphered.");
                         plainText = newLol.nextLine();
                         cipherText = AES.encryptPasswordBased(plainText, key, spec);
+                        cipherBoys.add(cipherText);
                         System.out.println("Encrypted Text:\n" + cipherText);
+                        System.out.println("Message ID #: " + cipherBoys.size());
                         i = 0;
                     }
                     else {
@@ -71,14 +82,13 @@ public class Main {
                 int i = 1;
                 while(i!=0) {
                     if (BCrypt.checkpw(pass, hashed)) {
-                        System.out.println("Enter cipherText:");
+                        System.out.println("Enter Message ID #:");
                         Scanner abc = new Scanner(System.in);
-                        cipherText = abc.nextLine();
+                        int id = abc.nextInt();
+                        cipherText = cipherBoys.get(id-1);
                         String decryptedCipherText = AES.decryptPasswordBased(cipherText, key, spec);
                         System.out.println("Decrypted text:\n" + decryptedCipherText);
                         i = 0;
-                        // Assertions to check if equal to
-                        // Assertions.assertEquals(plainText, decryptedCipherText);
                     } else {
                         System.out.println("Your password is wrong. Please enter it again.");
                         Scanner funnyDump = new Scanner(System.in);
@@ -86,20 +96,39 @@ public class Main {
                     }
                 }
             }
-            /*else if (choice == 3) {
-                System.out.println("Would you like to decrypt your previously encrypted text, or would you like to decrypt a different text? Enter 1 for same and 2 for different.");
-                String dumpTime = in.nextLine();
-                int userChoice = in.nextInt();
-                if (userChoice == 2) {
-                    System.out.println("Enter the encrypted text you want to decrypt.");
-                    String dumpytown = in.nextLine();
-                    String temp = in.nextLine();
-                    cipherd = temp;
+            else if (choice == 4) {
+                int i = 1;
+                System.out.println("Enter in your password:");
+                Scanner dumpMoment = new Scanner(System.in);
+                String pass = dumpMoment.nextLine();
+                while (i!=0) {
+                    if (BCrypt.checkpw(pass,hashed)) {
+                        AES.encryptFile(algorithm, key, spec, inputFile, encryptedFile);
+                    }
+                    else {
+                        System.out.println("Your password is wrong. Please enter it again.");
+                        Scanner funnyDump = new Scanner(System.in);
+                        pass = funnyDump.nextLine();
+                    }
                 }
 
-                plainText = AES.decryptPasswordBased(algorithm, cipherd, funnyKey, spec);
-                System.out.println("Decrypted text:\n" + plainText);
-                */
+            }
+            else if (choice == 5) {
+                System.out.println("Enter in your password:");
+                int i = 1;
+                Scanner dumpMoment = new Scanner(System.in);
+                String pass = dumpMoment.nextLine();
+                while (i!=0) {
+                    if (BCrypt.checkpw(pass,hashed)){
+                        AES.decryptFile(algorithm, key, spec, encryptedFile, decryptedFile);
+                    }
+                    else {
+                        System.out.println("Your password is wrong. Please enter it again.");
+                        Scanner funnyDump = new Scanner(System.in);
+                        pass = funnyDump.nextLine();
+                    }
+                }
+            }
              else {
                 System.out.println("Exiting Program");
                 System.exit(1);
